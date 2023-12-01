@@ -1,8 +1,6 @@
 from django.db import models
 
 # Create your models here.
-from django.db import models
-
 
 class TbFitbit(models.Model):
     idx = models.IntegerField(primary_key=True)
@@ -16,11 +14,11 @@ class TbFitbit(models.Model):
     sleep = models.IntegerField(blank=True, null=True)
     eda = models.FloatField(blank=True, null=True)
     temperature = models.FloatField(blank=True, null=True)
-    concentration_score = models.FloatField(blank=True, null=True)      
+    concentration_score = models.FloatField(blank=True, null=True)
 
     class Meta:
         managed = False
-        db_table = 'tb_fitbit'
+        db_table = 'TB_Fitbit'
 
 
 class TbMember(models.Model):
@@ -30,17 +28,17 @@ class TbMember(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'tb_member'
+        db_table = 'TB_Member'
 
 
 class TbSessionResult(models.Model):
-    session_id = models.CharField(primary_key=True, max_length=150)     
+    session_id = models.CharField(primary_key=True, max_length=150)
     user_id = models.CharField(max_length=30)
     input_place = models.CharField(max_length=100, blank=True, null=True)
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
-    concentration_score_avg = models.FloatField(blank=True, null=True)  
+    concentration_score_avg = models.FloatField(blank=True, null=True)
 
     class Meta:
         managed = False
-        db_table = 'tb_session_result'
+        db_table = 'TB_Session_Result'

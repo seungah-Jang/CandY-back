@@ -4,7 +4,7 @@ from decouple import config
 DATABASES ={
     'default':{
         'ENGINE' : 'django.db.backends.mysql',
-        'NAME' : 'purdue',
+        'NAME' : 'Purdue',
         'USER' : 'root',
         'PASSWORD' : config('DB_PASSWORD'),
         'HOST':'localhost',
