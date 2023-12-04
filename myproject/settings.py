@@ -138,7 +138,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 SECURE_SSL_REDIRECT = False
 
-#AUTH_USER_MODEL = 'CandY_Server.TbMember'
+AUTH_USER_MODEL = 'CandY_Server.TbMember'
 #SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO','https')
 
 #USE_X_FORWARDED_HOST = True
