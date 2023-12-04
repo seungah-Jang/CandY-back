@@ -24,7 +24,7 @@ class TbFitbit(models.Model):
 class TbMember(models.Model):
     user_id = models.CharField(primary_key=True, max_length=30)
     password = models.CharField(max_length=50)
-    device_check = models.IntegerField(blank=True, null=True)
+    device_check = models.IntegerField(blank=True, null=True, default =1)
 
     class Meta:
         managed = False
