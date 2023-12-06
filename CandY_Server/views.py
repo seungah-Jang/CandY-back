@@ -28,11 +28,23 @@ def Day_Concentration_Avg(request, date): # date is required by client
         day_concentration_avg = row[0] if row else None
 
         if day_concentration_avg is not None:
-            return JsonResponse({'day_concentration_avg': day_concentration_avg})
+            return JsonResponse({
+                'result' : True,
+                'day_concentration_avg': day_concentration_avg,
+                'message' : 'Data Exites'
+                })
         else:
-            return JsonResponse({'message':'No data available for day'})
+            return JsonResponse({
+                'result' :  False,
+                'day_concentration_avg' : None,
+                'message':'No data available for day',
+                })
     else:
-        return JsonResponse({'message':'Method Not Allowed'},status = 405)
+        return JsonResponse({
+            'result' : False,
+            'day_concentration_avg' : None,
+            'message':'Method Not Allowed'
+            },status=405)
 
 
 #2 Home Screen : You are in Home Screen, you can get the concentration average score yesterday
@@ -56,12 +68,24 @@ def Yesterday_Concentration_Avg(request):
 
         yesterday_concentration_avg = row[0] if row else None
         if yesterday_concentration_avg is not None:
-            return JsonResponse({'yesterday_concentration_avg': yesterday_concentration_avg})
+            return JsonResponse({
+                'result' : True,
+                'yesterday_concentration_avg': yesterday_concentration_avg,
+                'message' : 'Data Exites'
+                })
         else:
-            return JsonResponse({'message':'No data available for yesterday'})
+            return JsonResponse({
+                'result' :  False,
+                'yesterday_concentration_avg' : None,
+                'message':'No data available for yesterday'
+                })
 
     else:
-        return JsonResponse({'message':'Method Not Allowed'},status = 405)
+        return JsonResponse({
+            'result' : False,
+            'yesterday_concentration_avg' : None,
+            'message':'Method Not Allowed'
+            },status = 405)
 
 #3 Session Report
 def Session_Report (request, UserId, SessionId):
@@ -84,7 +108,7 @@ def Session_Report (request, UserId, SessionId):
             row = cursor.fetchone()
 
         if row is not None:
-            Session_Data = {
+            Session_Data_Avg = {
                 "hr" : row[0],
                 "hrv" : row[1],
                 "coherence" : row[2],
@@ -95,12 +119,24 @@ def Session_Report (request, UserId, SessionId):
                 "session_concentration_avg" : row[7]
             }
 
-        if Session_Data is not None:
-            return JsonResponse(Session_Data)
+        if Session_Data_Avg is not None:
+            return JsonResponse({
+                'result' : True,
+                'Session_Data_Avg' : Session_Data_Avg,
+                'message' : 'Data Exites'
+                })
         else:
-            return JsonResponse({'message':'No data'})
+            return JsonResponse({
+                'result' :  False,
+                'Session_Data_Avg' : None,
+                'message':'No data'
+                })
     else:
-        return JsonResponse({'message':'Method Not Allowed'}, status = 405)
+        return JsonResponse({
+            'result' : False,
+            'Session_Data_Avg' : None,
+            'message':'Method Not Allowed'
+            }, status = 405)
 
 #4 Session Screen Operation : insert tuple in TB_SESSION_RESULT
 @csrf_exempt    
@@ -145,11 +181,26 @@ def Create_Session_Result (request) :
                 """
                 cursor.execute(query, [session_concentration_avg,session_id])
 
-                return JsonResponse({'success':True, 'session_id':session_id},status=200)
+                return JsonResponse({'result':True, 'session_id':session_id, 'message':'Success'},status=200)
         except Exception as e:
-            return JsonResponse({'error':str(e)},status=500)    
+            return JsonResponse({'result': False, 'session_id':None, 'message':str(e)},status=500)    
 
-            
+def Show_UserID(request) : 
+    if request.method =='GET':
+        query = """
+            SELECT user_id from TB_MEMBER
+            WHERE user_id = HoT
+        """
+
+        with connection.cursor() as cursor:
+            cursor.execute(query)
+            row = cursor.fetchone()
+
+        user_id = row[0] if row else None
+        return JsonResponse({'result': True, 'user_id':user_id, 'message':'We are the Team HoT!'})
+    else:
+        return JsonResponse({'result':False, 'user_id':None, 'message':'Method Not Allowed'}, status=405)
+
 
 
 
