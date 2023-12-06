@@ -1,17 +1,157 @@
 from django.shortcuts import render
 
-from rest_framework import generics
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.views import APIView
-
-
-
-from django.contrib.auth import authenticate, login
 from django.http import JsonResponse
+from django.db import connection
+
 from django.views.decorators.csrf import csrf_exempt
-# Create your views here.
+from django.utils.decorators import method_decorator
+
+from django.views import View
+
+import json
+
+from datetime import datetime, timedelta
+#Sequence will be changed(modifying)
+
+#1 If you click the date in calendar, you can get the concentration average score for the day.  
+def Day_Concentration_Avg(request, date): # date is required by client
+    if request.method == 'GET':
+        query = """
+            SELECT AVG(concentration_score_avg) AS day_concentration_avg
+            FROM TB_SESSION_RESULT
+            WHERE DATE(session_start_time) = %s
+        """    
+        with connection.cursor() as cursor:
+            cursor.execute(query, [date])   
+            row = cursor.fetchone()
+
+        day_concentration_avg = row[0] if row else None
+
+        if day_concentration_avg is not None:
+            return JsonResponse({'day_concentration_avg': day_concentration_avg})
+        else:
+            return JsonResponse({'message':'No data available for day'})
+    else:
+        return JsonResponse({'message':'Method Not Allowed'},status = 405)
 
 
+#2 Home Screen : You are in Home Screen, you can get the concentration average score yesterday
+def Yesterday_Concentration_Avg(request):
+    if request.method == 'GET':
+
+        # today's date
+        today = datetime.now().date()
+
+        # yesterday date
+        yesterday = today - timedelta(days=1)
+
+        query = """
+            SELECT AVG(concentration_score_avg) AS yesterday_concentration_avg
+            FROM TB_SESSION_RESULT
+            WHERE DATE(session_start_time) = %s
+        """    
+        with connection.cursor() as cursor:
+            cursor.execute(query, [yesterday])   
+            row = cursor.fetchone()
+
+        yesterday_concentration_avg = row[0] if row else None
+        if yesterday_concentration_avg is not None:
+            return JsonResponse({'yesterday_concentration_avg': yesterday_concentration_avg})
+        else:
+            return JsonResponse({'message':'No data available for yesterday'})
+
+    else:
+        return JsonResponse({'message':'Method Not Allowed'},status = 405)
+
+#3 Session Report
+def Session_Report (request, UserId, SessionId):
+    if request.method == 'GET':
         
+        query = """
+            SELECT 
+                AVG(hr) AS hr_avg,
+                AVG(hrv) AS hrv_avg,
+                AVG(coherence) AS coherence_avg,
+                AVG(body_movement) AS body_movement_avg,
+                AVG(deep_sleep_minutes) AS deep_sleep_minutes_avg,
+                AVG(eda) AS eda_avg,
+                AVG(wrist_temperature) AS wrist_temperature_avg,
+                AVG(concentration_score) AS session_concentration_avg
+            WHERE user_id = %s AND session_id = %s
+        """
+        with connection.cursor() as cursor:
+            cursor.execute(query,[UserId, SessionId])
+            row = cursor.fetchone()
+
+        if row is not None:
+            Session_Data = {
+                "hr" : row[0],
+                "hrv" : row[1],
+                "coherence" : row[2],
+                "body_movement" : row[3],
+                "deep_sleep_minutes" : row[4],
+                "eda" : row[5],
+                "wrist_temperature" :row[6],
+                "session_concentration_avg" : row[7]
+            }
+
+        if Session_Data is not None:
+            return JsonResponse(Session_Data)
+        else:
+            return JsonResponse({'message':'No data'})
+    else:
+        return JsonResponse({'message':'Method Not Allowed'}, status = 405)
+
+#4 Session Screen Operation : insert tuple in TB_SESSION_RESULT
+@csrf_exempt    
+def Create_Session_Result (request) :
+    if request.method == 'POST':
+        try:
+            #POST Data
+            data = json.loads(request.body.decode('utf-8'))
+            user_id = data.get('user_id', None)
+            session_place = data.get('session_place',None)
+            session_start_time = data.get('session_start_time',None)
+            session_end_time = data.get('session_end_time',None)
+
+            
+            with connection.cursor() as cursor:
+                
+                #Insert data
+                query = """
+                    INSERT INTO TB_SESSION_RESULT (user_id, session_place, session_start_time, session_end_time)
+                    VALUES (%s, %s, %s, %s)
+                """
+                cursor.execute(query, [user_id, session_place, session_start_time, session_end_time])
+
+                # Get the last inserted session_id
+                session_id = cursor.lastrowid
+
+                # Caculate session_concentration_avg from TB_FITBIT
+                query ="""
+                    SELECT AVG(concentration_score) AS session_concentration_avg
+                    FROM TB_FITBIT
+                    WHERE user_id = %s AND session_id = %s
+                """
+                cursor.execute(query, [user_id, session_id])
+                row = cursor.fetchone()
+                session_concentration_avg = row[0]
+
+                # Update TB_SESSION_RESULT about session_concentration_avg
+                query = """
+                    UPDATE TB_SESSION_RESULT
+                    SET concentration_score_avg = %s
+                    WHERE session_id = %s
+                """
+                cursor.execute(query, [session_concentration_avg,session_id])
+
+                return JsonResponse({'success':True, 'session_id':session_id},status=200)
+        except Exception as e:
+            return JsonResponse({'error':str(e)},status=500)    
+
+            
+
+
+
+
+            
