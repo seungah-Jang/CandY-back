@@ -11,7 +11,7 @@ from django.views import View
 import json
 
 from datetime import datetime, timedelta
-#Sequence will be changed(modifying)
+# GET
 
 #1 If you click the date in calendar, you can get the concentration average score for the day.  
 def Day_Concentration_Avg(request, date): # date is required by client
@@ -47,7 +47,8 @@ def Day_Concentration_Avg(request, date): # date is required by client
             },status=405)
 
 
-#2 Home Screen : You are in Home Screen, you can get the concentration average score yesterday
+
+##1 Home Screen : You are in the Home Screen, you can get the concentration average score for yesterday
 def Yesterday_Concentration_Avg(request):
     if request.method == 'GET':
 
@@ -87,7 +88,65 @@ def Yesterday_Concentration_Avg(request):
             'message':'Method Not Allowed'
             },status = 405)
 
-#3 Session Report
+##2 Show UserID at the top
+def Show_UserID(request) : 
+    if request.method =='GET':
+        query = """
+            SELECT user_id from TB_MEMBER
+            WHERE user_id = "HoT"
+        """
+
+        with connection.cursor() as cursor:
+            cursor.execute(query)
+            row = cursor.fetchone()
+
+        user_id = row[0] if row else None
+        return JsonResponse({'result': True, 'user_id':user_id, 'message':'We are the Team HoT!'})
+    else:
+        return JsonResponse({'result':False, 'user_id':None, 'message':'Method Not Allowed'}, status=405)
+
+
+##3 Daily_Report : send the data about Day_Concentration_Avg and Daily_Report(session_id, session_place, session_start_time)
+def Daily_Report(request,UserId,date):
+    if request.method == 'GET':
+        query = """
+            SELECT AVG(concentration_score_avg) AS day_concentration_avg
+            FROM TB_SESSION_RESULT
+            WHERE DATE(session_start_time) = %s
+        """
+        with connection.cursor() as cursor:
+            cursor.execute(query,[date])
+            row = cursor.fetchone()    
+        
+        day_concentration_avg = row[0]
+
+        
+        query = """
+            SELECT session_id, session_place, TIME(session_start_time) AS session_start_time
+            FROM TB_SESSION_RESULT
+            WHERE user_id=%s AND DATE(session_start_time) = %s 
+        """
+        with connection.cursor() as cursor:
+            cursor.execute(query,[UserId,date])
+            rows = cursor.fetchall()
+            
+            
+            Daily_Report_All = []
+            for row in rows:
+                Daily_Report = {
+                    'session_id' :row[0],
+                    'session_place' :row[1],
+                    'session_start_time' : row[2].strftime('%H:%M:%S')
+                }
+                Daily_Report_All.append(Daily_Report)
+                
+                
+        return JsonResponse({'result':True,'day_concentration_avg':day_concentration_avg,'Daily_Report_All':Daily_Report_All,'message':'Success'})
+    else:
+        return JsonResponse({'result':False, 'day_concentration_avg':None, 'Daily_Report_All':None,'message':'Method Not Allowed'}, status=405)
+
+
+#3 Session Report : Send information on measured features 
 def Session_Report (request, UserId, SessionId):
     if request.method == 'GET':
         
@@ -139,7 +198,9 @@ def Session_Report (request, UserId, SessionId):
             'message':'Method Not Allowed'
             }, status = 405)
 
-#4 Session Screen Operation : insert tuple in TB_SESSION_RESULT
+#POST
+
+##1 If client clicks the finish button, session information is inserted into the TB_SESSION_RESULT
 @csrf_exempt    
 def Create_Session_Result (request) :
     if request.method == 'POST':
@@ -186,59 +247,9 @@ def Create_Session_Result (request) :
         except Exception as e:
             return JsonResponse({'result': False, 'session_id':None, 'message':str(e)},status=500)    
 
-def Show_UserID(request) : 
-    if request.method =='GET':
-        query = """
-            SELECT user_id from TB_MEMBER
-            WHERE user_id = "HoT"
-        """
 
-        with connection.cursor() as cursor:
-            cursor.execute(query)
-            row = cursor.fetchone()
 
-        user_id = row[0] if row else None
-        return JsonResponse({'result': True, 'user_id':user_id, 'message':'We are the Team HoT!'})
-    else:
-        return JsonResponse({'result':False, 'user_id':None, 'message':'Method Not Allowed'}, status=405)
 
-def Daily_Report(request,UserId,date):
-    if request.method == 'GET':
-        query = """
-            SELECT AVG(concentration_score_avg) AS day_concentration_avg
-            FROM TB_SESSION_RESULT
-            WHERE DATE(session_start_time) = %s
-        """
-        with connection.cursor() as cursor:
-            cursor.execute(query,[date])
-            row = cursor.fetchone()    
-        
-        day_concentration_avg = row[0]
-
-        
-        query = """
-            SELECT session_id, session_place, TIME(session_start_time) AS session_start_time
-            FROM TB_SESSION_RESULT
-            WHERE user_id=%s AND DATE(session_start_time) = %s 
-        """
-        with connection.cursor() as cursor:
-            cursor.execute(query,[UserId,date])
-            rows = cursor.fetchall()
-            
-            
-            Daily_Report_All = []
-            for row in rows:
-                Daily_Report = {
-                    'session_id' :row[0],
-                    'session_place' :row[1],
-                    'session_start_time' : row[2].strftime('%H:%M:%S')
-                }
-                Daily_Report_All.append(Daily_Report)
-                
-                
-        return JsonResponse({'result':True,'day_concentration_avg':day_concentration_avg,'Daily_Report_All':Daily_Report_All,'message':'Success'})
-    else:
-        return JsonResponse({'result':False, 'day_concentration_avg':None, 'Daily_Report_All':None,'message':'Method Not Allowed'}, status=405)
         
             
             
