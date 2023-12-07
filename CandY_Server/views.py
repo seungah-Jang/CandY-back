@@ -143,7 +143,7 @@ def Daily_Report(request,UserId,date):
         if len(Daily_Report_All) != 0 :
             return JsonResponse({'result':True,'day_concentration_avg':day_concentration_avg,'Daily_Report_All':Daily_Report_All,'message':'Success'})
         else:
-            return JsonResponse({'result':False,'day_concentration_avg':None,'Daily_Report_All':None,'message':'Data not existed'})
+            return JsonResponse({'result':False,'day_concentration_avg':0,'Daily_Report_All':0,'message':'Data not existed'})
 
             
     else:
