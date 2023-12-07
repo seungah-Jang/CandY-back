@@ -16,13 +16,14 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from .views import Day_Concentration_Avg,Yesterday_Concentration_Avg, Session_Report, Create_Session_Result,Show_UserID
+from .views import Day_Concentration_Avg,Yesterday_Concentration_Avg, Session_Report, Create_Session_Result,Show_UserID,Daily_Report
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path('Day_Avg/<date:date>/', Day_Concentration_Avg),
+    path('Day_Avg/<str:date>/', Day_Concentration_Avg),
     path('Yesterday_Avg/',Yesterday_Concentration_Avg),
-    path('Session_Report/<str:UserId>/<str:SessionId>/', Session_Report),
-    path('Creat_Session_Result/',Create_Session_Result),
-    path('Show_UserID/',Show_UserID)
+    path('Session_Report/<str:UserId>/<int:SessionId>/', Session_Report),
+    path('Create_Session_Result/',Create_Session_Result),
+    path('Show_UserID/',Show_UserID),
+    path('Daily_Report/<str:UserId>/<str:date>/',Daily_Report)
 ]

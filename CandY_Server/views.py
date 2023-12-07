@@ -101,6 +101,7 @@ def Session_Report (request, UserId, SessionId):
                 AVG(eda) AS eda_avg,
                 AVG(wrist_temperature) AS wrist_temperature_avg,
                 AVG(concentration_score) AS session_concentration_avg
+            FROM TB_FITBIT
             WHERE user_id = %s AND session_id = %s
         """
         with connection.cursor() as cursor:
@@ -123,7 +124,7 @@ def Session_Report (request, UserId, SessionId):
             return JsonResponse({
                 'result' : True,
                 'Session_Data_Avg' : Session_Data_Avg,
-                'message' : 'Data Exites'
+                'message' : 'Data Exist'
                 })
         else:
             return JsonResponse({
@@ -189,7 +190,7 @@ def Show_UserID(request) :
     if request.method =='GET':
         query = """
             SELECT user_id from TB_MEMBER
-            WHERE user_id = HoT
+            WHERE user_id = "HoT"
         """
 
         with connection.cursor() as cursor:
@@ -201,6 +202,47 @@ def Show_UserID(request) :
     else:
         return JsonResponse({'result':False, 'user_id':None, 'message':'Method Not Allowed'}, status=405)
 
+def Daily_Report(request,UserId,date):
+    if request.method == 'GET':
+        query = """
+            SELECT AVG(concentration_score_avg) AS day_concentration_avg
+            FROM TB_SESSION_RESULT
+            WHERE DATE(session_start_time) = %s
+        """
+        with connection.cursor() as cursor:
+            cursor.execute(query,[date])
+            row = cursor.fetchone()    
+        
+        day_concentration_avg = row[0]
+
+        
+        query = """
+            SELECT session_id, session_place, TIME(session_start_time) AS session_start_time
+            FROM TB_SESSION_RESULT
+            WHERE user_id=%s AND DATE(session_start_time) = %s 
+        """
+        with connection.cursor() as cursor:
+            cursor.execute(query,[UserId,date])
+            rows = cursor.fetchall()
+            
+            
+            Daily_Report_All = {}
+            for row in rows:
+                session_id = row[0]
+                Daily_Report_All[session_id] = {
+                    'session_id' :session_id,
+                    'session_place' :row[1],
+                    'session_start_time' : row[2].strftime('%H:%M:%S')
+                }
+                
+                
+        return JsonResponse({'result':True,'day_concentration_avg':day_concentration_avg,'Daily_Report_All':Daily_Report_All,'message':'Success'})
+    else:
+        return JsonResponse({'result':False, 'day_concentration_avg':None, 'Daily_Report_All':None,'message':'Method Not Allowed'}, status=405)
+        
+            
+            
+        
 
 
 
