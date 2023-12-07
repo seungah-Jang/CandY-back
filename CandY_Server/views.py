@@ -226,14 +226,14 @@ def Daily_Report(request,UserId,date):
             rows = cursor.fetchall()
             
             
-            Daily_Report_All = {}
+            Daily_Report_All = []
             for row in rows:
-                session_id = row[0]
-                Daily_Report_All[session_id] = {
-                    'session_id' :session_id,
+                Daily_Report = {
+                    'session_id' :row[0],
                     'session_place' :row[1],
                     'session_start_time' : row[2].strftime('%H:%M:%S')
                 }
+                Daily_Report_All.append(Daily_Report)
                 
                 
         return JsonResponse({'result':True,'day_concentration_avg':day_concentration_avg,'Daily_Report_All':Daily_Report_All,'message':'Success'})
