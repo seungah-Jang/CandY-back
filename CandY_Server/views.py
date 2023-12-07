@@ -109,6 +109,7 @@ def Show_UserID(request) :
 ##3 Daily_Report : send the data about Day_Concentration_Avg and Daily_Report(session_id, session_place, session_start_time)
 def Daily_Report(request,UserId,date):
     if request.method == 'GET':
+    
         query = """
             SELECT AVG(concentration_score_avg) AS day_concentration_avg
             FROM TB_SESSION_RESULT
@@ -117,10 +118,10 @@ def Daily_Report(request,UserId,date):
         with connection.cursor() as cursor:
             cursor.execute(query,[date])
             row = cursor.fetchone()    
-        
+            
         day_concentration_avg = row[0]
 
-        
+            
         query = """
             SELECT session_id, session_place, TIME(session_start_time) AS session_start_time
             FROM TB_SESSION_RESULT
@@ -129,8 +130,8 @@ def Daily_Report(request,UserId,date):
         with connection.cursor() as cursor:
             cursor.execute(query,[UserId,date])
             rows = cursor.fetchall()
-            
-            
+                
+                
             Daily_Report_All = []
             for row in rows:
                 Daily_Report = {
@@ -139,9 +140,12 @@ def Daily_Report(request,UserId,date):
                     'session_start_time' : row[2].strftime('%H:%M:%S')
                 }
                 Daily_Report_All.append(Daily_Report)
-                
-                
-        return JsonResponse({'result':True,'day_concentration_avg':day_concentration_avg,'Daily_Report_All':Daily_Report_All,'message':'Success'})
+        if len(Daily_Report_All) != 0 :
+            return JsonResponse({'result':True,'day_concentration_avg':day_concentration_avg,'Daily_Report_All':Daily_Report_All,'message':'Success'})
+        else:
+            return JsonResponse({'result':False,'day_concentration_avg':None,'Daily_Report_All':None,'message':'Data not existed'})
+
+            
     else:
         return JsonResponse({'result':False, 'day_concentration_avg':None, 'Daily_Report_All':None,'message':'Method Not Allowed'}, status=405)
 
