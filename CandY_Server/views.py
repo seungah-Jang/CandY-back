@@ -234,6 +234,9 @@ def Create_Session_Result (request) :
                 # Load data into the TB_FITBIT
 
                 ## (1) start 와 end time 사이에 5분 간격으로 몇 개의 term 인지 계산    
+                session_end_time = datetime.strptime(session_end_time, "%Y-%m-%d %H:%M:%S")
+                session_start_time = datetime.strptime(session_start_time, "%Y-%m-%d %H:%M:%S")
+                
                 total_duration = (session_end_time - session_start_time).total_seconds() / 60
                 intervals_cnt = int( total_duration / interval_minutes ) + 1
                 current_time = session_start_time
