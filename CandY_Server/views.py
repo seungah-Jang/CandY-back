@@ -48,37 +48,37 @@ def Day_Concentration_Avg(request, date): # date is required by client
 
 
 
-##1 Home Screen : You are in the Home Screen, you can get the concentration average score for yesterday
-def Yesterday_Concentration_Avg(request):
+##1 Home Screen : You are in the Home Screen, you can get the concentration average score for today
+def Today_Concentration_Avg(request):
     if request.method == 'GET':
 
         # today's date
         today = datetime.now().date()
 
         # yesterday date
-        yesterday = today - timedelta(days=1)
+        #yesterday = today - timedelta(days=1)
 
         query = """
-            SELECT AVG(concentration_score_avg) AS yesterday_concentration_avg
+            SELECT AVG(concentration_score_avg) AS today_concentration_avg
             FROM TB_SESSION_RESULT
             WHERE DATE(session_start_time) = %s
         """    
         with connection.cursor() as cursor:
-            cursor.execute(query, [yesterday])   
+            cursor.execute(query, [today])   
             row = cursor.fetchone()
 
-        yesterday_concentration_avg = row[0] if row else None
-        if yesterday_concentration_avg is not None:
+        today_concentration_avg = row[0] if row else None
+        if today_concentration_avg is not None:
             return JsonResponse({
                 'result' : True,
-                'yesterday_concentration_avg': yesterday_concentration_avg,
+                'today_concentration_avg': today_concentration_avg,
                 'message' : 'Data Exites'
                 })
         else:
             return JsonResponse({
                 'result' :  False,
-                'yesterday_concentration_avg' : None,
-                'message':'No data available for yesterday'
+                'today_concentration_avg' : 0,
+                'message':'No data available for today'
                 })
 
     else:
@@ -204,6 +204,7 @@ def Session_Report (request, UserId, SessionId):
 
 #POST
 
+interval_minutes = 5
 ##1 If client clicks the finish button, session information is inserted into the TB_SESSION_RESULT
 @csrf_exempt    
 def Create_Session_Result (request) :
@@ -217,6 +218,7 @@ def Create_Session_Result (request) :
             session_end_time = data.get('session_end_time',None)
 
             
+
             with connection.cursor() as cursor:
                 
                 #Insert data
@@ -229,6 +231,33 @@ def Create_Session_Result (request) :
                 # Get the last inserted session_id
                 session_id = cursor.lastrowid
 
+                # Load data into the TB_FITBIT
+
+                ## (1) start 와 end time 사이에 5분 간격으로 몇 개의 term 인지 계산    
+                total_duration = (session_end_time - session_start_time).total_seconds() / 60
+                intervals_cnt = int( total_duration / interval_minutes ) + 1
+                current_time = session_start_time
+
+                ## (2)Data table 에서 term 만큼의 데이터를 가져온다,TB_fitbit에 적재하기
+                query = """
+                    SELECT hr,hrv,coherence, body_movement, deep_sleep_minutes, eda, wrist_temperature, concentration_score
+                    FROM TB_DATA
+                    LIMIT %s
+                """
+                cursor.execute(query, [intervals_cnt])
+                rows = cursor.fetchall()
+
+
+                # experiment_idx 는 auto increment 로 만들기
+                for row in rows:
+                    query = """
+                        INSERT INTO TB_FITBIT (user_id, session_id, datetime, hr, hrv, coherence, body_movement, deep_sleep_minutes, eda, wrist_temperature, concentration_score)
+                        VALUES (%s, %s,%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    """
+                    cursor.execute(query,[user_id, session_id, current_time, *row])
+                    current_time = current_time + timedelta(minutes = interval_minutes)
+                
+                  
                 # Caculate session_concentration_avg from TB_FITBIT
                 query ="""
                     SELECT AVG(concentration_score) AS session_concentration_avg
@@ -250,11 +279,6 @@ def Create_Session_Result (request) :
                 return JsonResponse({'result':True, 'session_id':session_id, 'message':'Success'},status=200)
         except Exception as e:
             return JsonResponse({'result': False, 'session_id':None, 'message':str(e)},status=500)    
-
-
-
-
-        
             
             
         
