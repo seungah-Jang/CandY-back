@@ -216,12 +216,12 @@ def Monthly_Session(request,UserId,date):
         with connection.cursor() as cursor:
             cursor.execute(query,[UserId,date])
             rows = cursor.fetchall()
-            date_list = [str(row[0]) for row in rows]
+            Monthly_Session_Date = [str(row[0]) for row in rows]
 
-            Monthly_Session_Date = json.dumps(date_list, ensure_ascii=False)
+            #Monthly_Session_Date = json.dumps(date_list, ensure_ascii=False)
 
             
-        if len(date_list) != 0 :
+        if len(Monthly_Session_Date) != 0 :
             return JsonResponse({'result':True,'Monthly_Session_Date':Monthly_Session_Date,'message':'Success'})
         else:
             return JsonResponse({'result':False,'Monthly_Session_Date':None,'message':'Data not existed'})
