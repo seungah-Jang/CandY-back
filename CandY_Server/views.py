@@ -281,7 +281,7 @@ def Create_Session_Result (request) :
                 for row in rows:
                     query = """
                         INSERT INTO TB_FITBIT (user_id, session_id, datetime, hr, hrv, body_movement, deep_sleep_minutes, eda, wrist_temperature, concentration_score)
-                        VALUES (%s, %s,%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                        VALUES (%s, %s,%s, %s, %s, %s, %s, %s, %s, %s)
                     """
                     cursor.execute(query,[user_id, session_id, current_time, *row])
                     current_time = current_time + timedelta(minutes = interval_minutes)
