@@ -202,6 +202,35 @@ def Session_Report (request, UserId, SessionId):
             'message':'Method Not Allowed'
             }, status = 405)
 
+
+#Monthly
+def Monthly_Session(request,UserId,date):
+    if request.method == 'GET':
+    
+        query = """
+            SELECT DATE(session_start_time) AS monthly_session_date
+            FROM TB_SESSION_RESULT
+            WHERE user_id = % s AND DATE_FORMAT(session_start_time, '%Y-%m') = %s 
+        """
+
+        with connection.cursor() as cursor:
+            cursor.execute(query,[UserId,date])
+            rows = cursor.fetchall()
+            date_list = [str(row[0]) for row in rows]
+
+            Monthly_Session_Date = json.dumps(date_list)
+
+            
+        if len(date_list) != 0 :
+            return JsonResponse({'result':True,'Monthly_Session_Date':Monthly_Session_Date,'message':'Success'})
+        else:
+            return JsonResponse({'result':False,'Monthly_Session_Date':None,'message':'Data not existed'})
+
+            
+    else:
+        return JsonResponse({'result':False, 'Monthly_Session_Date':None,'message':'Method Not Allowed'}, status=405)
+
+
 #POST
 
 interval_minutes = 5
