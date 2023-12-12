@@ -208,7 +208,7 @@ def Monthly_Session(request,UserId,date):
     if request.method == 'GET':
     
         query = """
-            SELECT DATE(session_start_time) AS monthly_session_date
+            SELECT DISTINCT DATE(session_start_time) AS monthly_session_date
             FROM TB_SESSION_RESULT
             WHERE user_id = % s AND DATE_FORMAT(session_start_time, '%%Y-%%m') = %s 
         """
@@ -218,7 +218,7 @@ def Monthly_Session(request,UserId,date):
             rows = cursor.fetchall()
             date_list = [str(row[0]) for row in rows]
 
-            Monthly_Session_Date = json.dumps(date_list)
+            Monthly_Session_Date = json.dumps(date_list, ensure_ascii=False)
 
             
         if len(date_list) != 0 :
