@@ -210,7 +210,7 @@ def Monthly_Session(request,UserId,date):
         query = """
             SELECT DATE(session_start_time) AS monthly_session_date
             FROM TB_SESSION_RESULT
-            WHERE user_id = % s AND DATE_FORMAT(session_start_time, '%Y-%m') = %s 
+            WHERE user_id = % s AND DATE_FORMAT(session_start_time, '%%Y-%%m') = %s 
         """
 
         with connection.cursor() as cursor:
