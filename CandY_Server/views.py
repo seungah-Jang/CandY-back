@@ -153,12 +153,10 @@ def Daily_Report(request,UserId,date):
 #3 Session Report : Send information on measured features 
 def Session_Report (request, UserId, SessionId):
     if request.method == 'GET':
-        
         query = """
             SELECT 
                 AVG(hr) AS hr_avg,
                 AVG(hrv) AS hrv_avg,
-                AVG(coherence) AS coherence_avg,
                 AVG(body_movement) AS body_movement_avg,
                 AVG(deep_sleep_minutes) AS deep_sleep_minutes_avg,
                 AVG(eda) AS eda_avg,
@@ -175,12 +173,11 @@ def Session_Report (request, UserId, SessionId):
             Session_Data_Avg = {
                 "hr" : row[0],
                 "hrv" : row[1],
-                "coherence" : row[2],
-                "body_movement" : row[3],
-                "deep_sleep_minutes" : row[4],
-                "eda" : row[5],
-                "wrist_temperature" :row[6],
-                "session_concentration_avg" : row[7]
+                "body_movement" : row[2],
+                "deep_sleep_minutes" : row[3],
+                "eda" : row[4],
+                "wrist_temperature" :row[5],
+                "session_concentration_avg" : row[6]
             }
 
         if Session_Data_Avg is not None:
@@ -272,7 +269,7 @@ def Create_Session_Result (request) :
 
                 ## (2)Data table 에서 term 만큼의 데이터를 가져온다,TB_fitbit에 적재하기
                 query = """
-                    SELECT hr,hrv,coherence, body_movement, deep_sleep_minutes, eda, wrist_temperature, concentration_score
+                    SELECT hr,hrv, body_movement, deep_sleep_minutes, eda, wrist_temperature, concentration_score
                     FROM TB_DATA
                     LIMIT %s
                 """
@@ -283,7 +280,7 @@ def Create_Session_Result (request) :
                 # experiment_idx 는 auto increment 로 만들기
                 for row in rows:
                     query = """
-                        INSERT INTO TB_FITBIT (user_id, session_id, datetime, hr, hrv, coherence, body_movement, deep_sleep_minutes, eda, wrist_temperature, concentration_score)
+                        INSERT INTO TB_FITBIT (user_id, session_id, datetime, hr, hrv, body_movement, deep_sleep_minutes, eda, wrist_temperature, concentration_score)
                         VALUES (%s, %s,%s, %s, %s, %s, %s, %s, %s, %s, %s)
                     """
                     cursor.execute(query,[user_id, session_id, current_time, *row])
