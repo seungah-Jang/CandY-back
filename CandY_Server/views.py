@@ -200,32 +200,32 @@ def Session_Report (request, UserId, SessionId):
             }, status = 405)
 
 
-#Monthly
-def Monthly_Session(request,UserId,date):
+#유저에 대한 모든 세션
+def User_Session_All (request,UserId):
     if request.method == 'GET':
     
         query = """
-            SELECT DISTINCT DATE(session_start_time) AS monthly_session_date
+            SELECT DISTINCT DATE(session_start_time) AS User_Session_All
             FROM TB_SESSION_RESULT
-            WHERE user_id = % s AND DATE_FORMAT(session_start_time, '%%Y-%%m') = %s 
+            WHERE user_id = % s
         """
 
         with connection.cursor() as cursor:
-            cursor.execute(query,[UserId,date])
+            cursor.execute(query,[UserId])
             rows = cursor.fetchall()
-            Monthly_Session_Date = [str(row[0]) for row in rows]
+            User_Session_All = [str(row[0]) for row in rows]
 
             #Monthly_Session_Date = json.dumps(date_list, ensure_ascii=False)
 
             
-        if len(Monthly_Session_Date) != 0 :
-            return JsonResponse({'result':True,'Monthly_Session_Date':Monthly_Session_Date,'message':'Success'})
+        if len(User_Session_All) != 0 :
+            return JsonResponse({'result':True,'User_Session_All':User_Session_All,'message':'Success'})
         else:
-            return JsonResponse({'result':False,'Monthly_Session_Date':None,'message':'Data not existed'})
+            return JsonResponse({'result':False,'User_Session_All':None,'message':'Data not existed'})
 
             
     else:
-        return JsonResponse({'result':False, 'Monthly_Session_Date':None,'message':'Method Not Allowed'}, status=405)
+        return JsonResponse({'result':False, 'User_Session_All':None,'message':'Method Not Allowed'}, status=405)
 
 
 #POST
