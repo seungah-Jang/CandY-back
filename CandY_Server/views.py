@@ -84,7 +84,7 @@ def Today_Concentration_Avg(request):
     else:
         return JsonResponse({
             'result' : False,
-            'yesterday_concentration_avg' : None,
+            'today_concentration_avg' : None,
             'message':'Method Not Allowed'
             },status = 405)
 
