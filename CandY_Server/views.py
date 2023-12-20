@@ -13,7 +13,7 @@ import json
 from datetime import datetime, timedelta
 # GET
 
-#1 If you click the date in calendar, you can get the concentration average score for the day.  
+##1 If you click the date in calendar, you can get the concentration average score for the day.  
 def Day_Concentration_Avg(request, date): # date is required by client
     if request.method == 'GET':
         query = """
@@ -47,8 +47,7 @@ def Day_Concentration_Avg(request, date): # date is required by client
             },status=405)
 
 
-
-##1 Home Screen : You are in the Home Screen, you can get the concentration average score for today
+##2 Home Screen : You are in the Home Screen, you can get the concentration average score for today
 def Today_Concentration_Avg(request):
     if request.method == 'GET':
 
@@ -88,7 +87,7 @@ def Today_Concentration_Avg(request):
             'message':'Method Not Allowed'
             },status = 405)
 
-##2 Show UserID at the top
+##3 Show the UserID at the top (HoT)
 def Show_UserID(request) : 
     if request.method =='GET':
         query = """
@@ -106,7 +105,7 @@ def Show_UserID(request) :
         return JsonResponse({'result':False, 'user_id':None, 'message':'Method Not Allowed'}, status=405)
 
 
-##3 Daily_Report : send the data about Day_Concentration_Avg and Daily_Report(session_id, session_place, session_start_time)
+##4 Daily_Report : Send the data about Day_Concentration_Avg and Daily_Report(session_id, session_place, session_start_time)
 def Daily_Report(request,UserId,date):
     if request.method == 'GET':
     
@@ -150,7 +149,7 @@ def Daily_Report(request,UserId,date):
         return JsonResponse({'result':False, 'day_concentration_avg':None, 'Daily_Report_All':None,'message':'Method Not Allowed'}, status=405)
 
 
-#3 Session Report : Send information on measured features 
+##5 Session Report : Send the information on measured features 
 def Session_Report (request, UserId, SessionId):
     if request.method == 'GET':
         query = """
@@ -200,7 +199,7 @@ def Session_Report (request, UserId, SessionId):
             }, status = 405)
 
 
-#유저에 대한 모든 세션
+##6 Send the session dates for the user for marking on the calendar
 def User_Session_All (request,UserId):
     if request.method == 'GET':
     
@@ -231,7 +230,8 @@ def User_Session_All (request,UserId):
 #POST
 
 interval_minutes = 5
-##1 If client clicks the finish button, session information is inserted into the TB_SESSION_RESULT
+##1 If the client clicks the finish button, session information is inserted into the TB_SESSION_RESULT
+## Bio data is loaded into the TB_FITBIT
 @csrf_exempt    
 def Create_Session_Result (request) :
     if request.method == 'POST':
@@ -243,11 +243,9 @@ def Create_Session_Result (request) :
             session_start_time = data.get('session_start_time',None)
             session_end_time = data.get('session_end_time',None)
 
-            
-
             with connection.cursor() as cursor:
                 
-                #Insert data
+                #Session result is inserted into the TB_SESSION_RESULT
                 query = """
                     INSERT INTO TB_SESSION_RESULT (user_id, session_place, session_start_time, session_end_time)
                     VALUES (%s, %s, %s, %s)
@@ -257,9 +255,9 @@ def Create_Session_Result (request) :
                 # Get the last inserted session_id
                 session_id = cursor.lastrowid
 
-                # Load data into the TB_FITBIT
+                # Bio data is loaded into the TB_FITBIT
 
-                ## (1) start 와 end time 사이에 5분 간격으로 몇 개의 term 인지 계산    
+                ## (1) Caculate the number of data to load    
                 session_end_time = datetime.strptime(session_end_time, "%Y-%m-%d %H:%M:%S")
                 session_start_time = datetime.strptime(session_start_time, "%Y-%m-%d %H:%M:%S")
                 
@@ -267,7 +265,7 @@ def Create_Session_Result (request) :
                 intervals_cnt = int( total_duration / interval_minutes ) + 1
                 current_time = session_start_time
 
-                ## (2)Data table 에서 term 만큼의 데이터를 가져온다,TB_fitbit에 적재하기
+                ## (2) Get the data from TB_DATA and load it into TB_FITBIT
                 query = """
                     SELECT hr,hrv, body_movement, deep_sleep_minutes, eda, wrist_temperature, concentration_score
                     FROM TB_DATA
@@ -276,8 +274,6 @@ def Create_Session_Result (request) :
                 cursor.execute(query, [intervals_cnt])
                 rows = cursor.fetchall()
 
-
-                # experiment_idx 는 auto increment 로 만들기
                 for row in rows:
                     query = """
                         INSERT INTO TB_FITBIT (user_id, session_id, datetime, hr, hrv, body_movement, deep_sleep_minutes, eda, wrist_temperature, concentration_score)
@@ -309,8 +305,6 @@ def Create_Session_Result (request) :
         except Exception as e:
             return JsonResponse({'result': False, 'session_id':None, 'message':str(e)},status=500)    
             
-            
-        
 
 
 
