@@ -1,6 +1,7 @@
 import os
 from decouple import config
 
+#MySQL Database setting
 DATABASES ={
     'default':{
         'ENGINE' : 'django.db.backends.mysql',

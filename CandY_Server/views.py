@@ -106,7 +106,7 @@ def Show_UserID(request) :
 
 
 ##4 Daily_Report : Send the data about Day_Concentration_Avg and Daily_Report(session_id, session_place, session_start_time)
-def Daily_Report(request,UserId,date):
+def Daily_Report(request,UserId,date): # UserId and date are required by client
     if request.method == 'GET':
     
         query = """
@@ -150,7 +150,7 @@ def Daily_Report(request,UserId,date):
 
 
 ##5 Session Report : Send the information on measured features 
-def Session_Report (request, UserId, SessionId):
+def Session_Report (request, UserId, SessionId): # UserId and SessionId are required by client
     if request.method == 'GET':
         query = """
             SELECT 
@@ -168,6 +168,7 @@ def Session_Report (request, UserId, SessionId):
             cursor.execute(query,[UserId, SessionId])
             row = cursor.fetchone()
 
+        # bio information
         if row is not None:
             Session_Data_Avg = {
                 "hr" : row[0],
@@ -213,9 +214,6 @@ def User_Session_All (request,UserId):
             cursor.execute(query,[UserId])
             rows = cursor.fetchall()
             User_Session_All = [str(row[0]) for row in rows]
-
-            #Monthly_Session_Date = json.dumps(date_list, ensure_ascii=False)
-
             
         if len(User_Session_All) != 0 :
             return JsonResponse({'result':True,'User_Session_All':User_Session_All,'message':'Success'})

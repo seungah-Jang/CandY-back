@@ -1,6 +1,6 @@
 from django.db import models
 
-
+# TB_FITBIT Table provides the bio information
 class TB_FITBIT(models.Model):
     experiment_idx = models.IntegerField(primary_key=True)
     user_id = models.ForeignKey('TB_MEMBER', models.DO_NOTHING)
@@ -19,7 +19,7 @@ class TB_FITBIT(models.Model):
         managed = False
         db_table = 'TB_FITBIT'
 
-
+#TB_MEMBER Table provides the user information
 class TB_MEMBER(models.Model):
     user_id = models.CharField(primary_key=True, max_length=30)
     user_pw = models.CharField(max_length=50)
@@ -28,7 +28,7 @@ class TB_MEMBER(models.Model):
         managed = False
         db_table = 'TB_MEMBER'
 
-
+#TB_SESSION_RESULT Table provids the session information
 class TB_SESSION_RESULT(models.Model):
     session_id = models.AutoField(primary_key=True)
     user_id = models.ForeignKey(TB_MEMBER, models.DO_NOTHING)
